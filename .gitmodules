@@ -1,0 +1,7 @@
+[submodule "tekshinobiblog/themes/hugo-bearcub"]
+	path = tekshinobiblog/themes/hugo-bearcub
+	url = https://github.com/clente/hugo-bearcub
+[submodule "tekshinobiblog/public"]
+	path = tekshinobiblog/public
+	url = https://github.com/tek-shinobi/tek-shinobi.github.io.git
+	branch = main
