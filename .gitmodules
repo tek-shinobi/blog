@@ -5,3 +5,15 @@
 	path = tekshinobiblog/public
 	url = https://github.com/tek-shinobi/tek-shinobi.github.io.git
 	branch = main
+[submodule "tekshinobiblog/themes/anubis"]
+	path = tekshinobiblog/themes/anubis
+	url = https://github.com/mitrichius/hugo-theme-anubis.git
+[submodule "tekshinobiblog/themes/binario"]
+	path = tekshinobiblog/themes/binario
+	url = https://github.com/vimux/binario
+[submodule "tekshinobiblog/themes/themes/holy"]
+	path = tekshinobiblog/themes/themes/holy
+	url = https://github.com/serkodev/holy.git
+[submodule "tekshinobiblog/themes/holy"]
+	path = tekshinobiblog/themes/holy
+	url = https://github.com/serkodev/holy.git
