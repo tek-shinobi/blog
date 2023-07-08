@@ -2,6 +2,8 @@
 title: "Add Gpg Keys to Repo"
 date: 2023-05-13T22:53:11+03:00
 draft: false 
+categories: ["github"]
+tags: ["github", "verify", "account", "gpg"]
 ---
 
 # Add GPG keys to github repo and local 

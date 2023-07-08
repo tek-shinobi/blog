@@ -17,3 +17,9 @@
 [submodule "tekshinobiblog/themes/holy"]
 	path = tekshinobiblog/themes/holy
 	url = https://github.com/serkodev/holy.git
+[submodule "tekshinobiblog/themes/simplog"]
+	path = tekshinobiblog/themes/simplog
+	url = https://github.com/michimani/simplog.git
+[submodule "tekshinobiblog/themes/paper"]
+	path = tekshinobiblog/themes/paper
+	url = https://github.com/nanxiaobei/hugo-paper
