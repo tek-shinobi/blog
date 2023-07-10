@@ -2,6 +2,8 @@
 title: "Rust Tips: Box Rc Arc Cell Refcell Mutex"
 date: 2021-03-08T11:58:32+03:00
 draft: false 
+categories: ["rust"]
+tags: ["rust"]
 ---
 Difference Between Box, Rc, Arc, Cell (and its various variants.. RefCell, Mutex, RwLock) in Rust:
 

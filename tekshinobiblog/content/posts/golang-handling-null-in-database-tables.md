@@ -2,6 +2,8 @@
 title: "Golang: Handling Null in Database Tables"
 date: 2023-07-11T01:52:51+03:00
 draft: false 
+categories: ["golang", "go"]
+tags: ["golang", "go", "null"]
 ---
 
 Consider this table schema (Postgres):
