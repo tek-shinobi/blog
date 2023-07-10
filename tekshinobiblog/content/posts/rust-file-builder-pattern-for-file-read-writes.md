@@ -1,6 +1,6 @@
 ---
 title: "Rust File Builder Pattern for File Read Writes"
-date: 2023-07-10T11:14:09+03:00
+date: 2021-03-20T11:14:09+03:00
 draft: false 
 categories: ["rust"]
 tags: ["rust","file", "builder"]
