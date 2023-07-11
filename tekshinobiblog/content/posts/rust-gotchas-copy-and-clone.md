@@ -1,9 +1,9 @@
 ---
 title: "Rust Gotchas Copy and Clone"
-date: 2021-07-29T22:21:11+03:00
+date: 2021-05-29T22:21:11+03:00
 draft: false 
 categories: ["rust"]
-tags: ["rust", "copy", "clone"]
+tags: ["rust"]
 ---
 Rust has two central concepts: Borrowing and ownership.
 

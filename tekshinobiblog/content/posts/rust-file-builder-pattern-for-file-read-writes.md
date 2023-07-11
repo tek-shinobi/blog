@@ -3,7 +3,7 @@ title: "Rust File Builder Pattern for File Read Writes"
 date: 2021-03-20T11:14:09+03:00
 draft: false 
 categories: ["rust"]
-tags: ["rust","file", "builder"]
+tags: ["rust"]
 ---
 
 Consider the following test code that creates a file, writes to it and then reads back to confirm what it wrote.

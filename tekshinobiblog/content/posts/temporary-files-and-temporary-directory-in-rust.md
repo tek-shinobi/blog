@@ -3,7 +3,7 @@ title: "Temporary Files and Temporary Directory in Rust"
 date: 2021-03-20T11:36:47+03:00
 draft: false 
 categories: ["rust"]
-tags: ["rust","file", "temporary"]
+tags: ["rust"]
 ---
 I was looking for Python style temporary files and temporary directories in Rust. Very handy when writing tests for simulating actual files, or when we need to use files once or cache large amount of data for short time. We then let the operating system delete the files at a later time automatically or by its clean-up feature manually.
 
