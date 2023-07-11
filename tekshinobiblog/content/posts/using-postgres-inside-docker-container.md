@@ -1,6 +1,6 @@
 ---
 title: "Using Postgres Inside Docker Container"
-date: 2023-04-10T10:38:56+03:00
+date: 2023-07-10T10:38:56+03:00
 draft: false 
 categories: ["docker"]
 tags: ["docker", "postgres", "golang"]
