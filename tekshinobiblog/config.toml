@@ -1,12 +1,18 @@
 baseURL = 'https://tek-shinobi.github.io/'
 title = 'Tek Shinobi Blog'
-theme = 'paper'
+theme = 'mainroad'
 
+[Params]
+  post_meta = ["date", "categories"]
 
-[params]
-  # color style
-  color = 'linen'                           # linen, wheat, gray, light
+[Params.sidebar]
+  home = "right"
+  list = "right"
+  single = "right"
+  # Enable widgets in given order
+  widgets = ["social", "recent", "categories", "taglist"]
 
-  # header social icons
-  github = 'tek-shinobi'                 # github.com/YOUR_GITHUB_ID
+[Params.widgets.social]
+  # Enable parts of social widget
   linkedin = 'himanshu-singh-remote/'             # linkedin.com/in/YOUR_LINKEDIN_ID
+  github = 'tek-shinobi'                 # github.com/YOUR_GITHUB_ID

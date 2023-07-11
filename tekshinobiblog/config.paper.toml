@@ -1,0 +1,12 @@
+baseURL = 'https://tek-shinobi.github.io/'
+title = 'Tek Shinobi Blog'
+theme = 'paper'
+
+
+[params]
+  # color style
+  color = 'linen'                           # linen, wheat, gray, light
+
+  # header social icons
+  github = 'tek-shinobi'                 # github.com/YOUR_GITHUB_ID
+  linkedin = 'himanshu-singh-remote/'             # linkedin.com/in/YOUR_LINKEDIN_ID

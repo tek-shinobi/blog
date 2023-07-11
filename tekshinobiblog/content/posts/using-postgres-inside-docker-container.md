@@ -1,8 +1,8 @@
 ---
-title: "Using Postgres Inside Docker Container"
+title: "Golang: Using Postgres Inside Docker Container"
 date: 2023-07-10T10:38:56+03:00
 draft: false 
-categories: ["docker"]
+categories: ["docker", "golang"]
 tags: ["docker", "postgres", "golang"]
 ---
 ## Cleanup if default postgres port not free
@@ -13,7 +13,8 @@ sudo ss -lptn 'sport = :5432'
 
 the above command will also display the pid using which you can kill the process. For example, if the pid is 1667, kill it by sudo kill 1667
 
-(to connect to an existing running docker container via its container id, scroll to end)
+* To connect to an existing running docker container via its container id, scroll to end
+* To see how to connect to it using only golang standard library (`database/sql`) + a database driver (`lib/pq` in this case for postgres), ***without*** helper methods from 3rd party libraries like `sqlx`, scroll to end
 
 ## Connecting to postgres from scratch
 First launch the postgres container in interactive mode:
