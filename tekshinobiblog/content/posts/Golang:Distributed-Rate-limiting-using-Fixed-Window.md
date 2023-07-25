@@ -63,8 +63,12 @@ type Limiter interface {
 }
 
 ```
+### Attempt 1: Write First implementation
+
+We will first implement via a ***write first*** approach. In this approach, we modify the redis counter first and then decide if this request will be allowed or denied. This makes the counter increment unbounded as any request will increment it even if it is rate limited. Its not optimal but its simpler to understand the logic. Later we will implement the optimized version with bounded increments. 
 
 this is how our `fixedwindow.go` looks like:
+
 ```go
 package ratelimiter
 
@@ -150,4 +154,101 @@ func (sl *fixedWindowLimiter) Do(ctx context.Context, r *Request) (*Result, erro
 }
 ```
 
-Note: the implementation above is ***write first*** approach. We modify the redis counter first and then decide if this request will be allowed or denied. This makes the counter increment unbounded as any request will increment it even if it is rate limited. In most cases this is OK if redis is run as a cluster and window size is small enough that counter does not overflow (uint64 is really large value).
+
+### Attempt 2: Bounded Increments implementations
+
+Here is the final version with bounded increments. Now we read before we increment, making sure we only increment if this is a good request that will be allowed. Otherwise just bail and deny the request before trying anything.
+
+`fixedwindow.go`
+
+```go
+package ratelimiter
+
+import (
+	"context"
+	"time"
+
+	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
+)
+
+const (
+	keyThatDoesNotExist = -2
+	keyWithoutExpire    = -1
+)
+
+type fixedWindowLimiter struct {
+	redisClient *redis.Client
+	now         func() time.Time
+}
+
+func NewFixedWindowLimiter(cl *redis.Client, now func() time.Time) Limiter {
+	return &fixedWindowLimiter{
+		redisClient: cl,
+		now:         now,
+	}
+}
+
+// Do ...
+func (fwl *fixedWindowLimiter) Do(ctx context.Context, r *Request) (*Result, error) {
+	p := fwl.redisClient.Pipeline()
+	getResult := p.Get(ctx, r.Key)
+	ttlResult := p.TTL(ctx, r.Key)
+
+	if _, err := p.Exec(ctx); err != nil && !errors.Is(err, redis.Nil) {
+		return nil, errors.Wrapf(err, "failed at exec pipeline with key: %s", r.Key)
+	}
+
+	var ttlDuration time.Duration
+
+	dur, err := ttlResult.Result()
+
+	if err != nil || dur == keyWithoutExpire || dur == keyThatDoesNotExist {
+		ttlDuration = r.Duration
+		if err := fwl.redisClient.Expire(ctx, r.Key, r.Duration).Err(); err != nil {
+			return nil, errors.Wrapf(err, "failed to set expiration to key: %s", r.Key)
+		}
+	} else {
+		ttlDuration = dur
+	}
+
+	expiresAt := fwl.now().Add(ttlDuration)
+
+	requestCount, err := getResult.Uint64()
+
+	if err != nil && errors.Is(err, redis.Nil) {
+
+	}
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return nil, errors.Wrapf(err, "failed to get total request count for key:%s", r.Key)
+	}
+
+	if requestCount > r.Limit {
+		return &Result{
+			State:         Deny,
+			TotalRequests: requestCount,
+			ExpiresAt:     expiresAt,
+		}, nil
+	}
+
+	incrResult := fwl.redisClient.Incr(ctx, r.Key)
+	requestCount, err = incrResult.Uint64()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to increment request count")
+	}
+
+	if requestCount > r.Limit {
+		return &Result{
+			State:         Deny,
+			TotalRequests: requestCount,
+			ExpiresAt:     expiresAt,
+		}, nil
+	}
+
+	return &Result{
+		State:         Allow,
+		TotalRequests: requestCount,
+		ExpiresAt:     expiresAt,
+	}, nil
+}
+```
