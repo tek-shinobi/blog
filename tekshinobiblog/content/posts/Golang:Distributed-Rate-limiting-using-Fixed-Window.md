@@ -1,9 +1,9 @@
 ---
-title: "Golang: Distributed Rate Limiting Using Fixed Window"
+title: "Golang: Distributed Rate Limiting Using Fixed Window and Redis"
 date: 2023-07-25T10:41:57+03:00
 draft: false 
 categories: ["golang", "distributed system design"]
-tags: ["golang", "rate limiter"]
+tags: ["golang", "rate limiter", "redis"]
 ---
 
 Fixed Window rate limiter is the simplest form of rate limiting. It means that once the expiration has been set, a client that reaches the limit will be blocked from making further requests until the expiration time arrives. If a client has a limit of 50 requests every minute and makes all 50 requests in the first 5 seconds of the minute, it will have to wait 55 seconds to make another request. This is also the main downside of this implementation, it would still let a client burn through its whole limit quickly (bursty traffic) and that could still overload your service, as it could be expecting this traffic to be spread out throughout the whole limiting period.
