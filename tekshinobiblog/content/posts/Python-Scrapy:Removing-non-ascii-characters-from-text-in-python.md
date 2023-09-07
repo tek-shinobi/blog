@@ -2,7 +2,7 @@
 title: "Python Scrapy:Removing Non Ascii Characters From Text in Python"
 date: 2018-09-05T11:13:58+03:00
 draft: false 
-categories: ["python"]
+categories: ["backend", "python"]
 tags: ["python", "scrapy"]
 ---
 

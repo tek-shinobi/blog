@@ -2,7 +2,7 @@
 title: "Backend Python:Temporary Files in Python"
 date: 2019-09-05T11:01:54+03:00
 draft: false 
-categories: ["python"]
+categories: ["backend", "python"]
 tags: ["python"]
 ---
 Let me start with an actual use case scenario. As a backend developer, I need to process the user uploaded file data all the time. Here temporary files shine. The best part about these is that they make cleanup easier. If you make a real file, you need to use some OS level utility to manually delete the file after you are done with it. If you are using temporary files – option-1, then just by closing the file, you are guaranteed that OS will later clear it up. If using option-2, it will get garbage collected.
