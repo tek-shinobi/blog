@@ -613,3 +613,310 @@ In fact, ClusterIP is the default type for a service. So, if we had skipped the 
 So we have seen NodePort service make an external facing application available on the port on worker nodes.
 
 LoadBalancer type Service is only supported on specific kubernetes provoders like AWS, GCP and Azure. Instead of using an external LoadBalancer like nginx, HAProxy etc, you could use a supported LoadBalancer service.
+
+## Running microservices on Kubernetes
+
+Let's take an example of the demo application provided by docker https://github.com/dockersamples/example-voting-app
+{{< figure src="/microservices.png" alt="Microservices" caption="Microservices" >}}
+
+Here, there is a votiing app implemented across 5 docker containers. 
+- `vote` is a python application that enables a user to vote
+- `redis` serves as in-memory database for `vote` application
+- `worker` is a .NET application that takes in data from `redis` and sends it to `db`
+- `db` is a postgres database 
+- `result` is a NodeJS application that gets its data from `db` and then displays the reults of the vote in realtime
+
+Without using docker-compose or swarm, we can manually run each application in a docker container and then link them together (`--link`) so that we are able to access the applications via hostname
+
+here `--link` has the format `container_name:hostname`
+
+Note the hostname used in the `try` block in the .NET application code example. We are using `redis` and `db` as hostnames
+
+Note that directly linking docker containers like this is deprecated and this feature might be removed completely in future in favor of docker compose or swarm.
+
+#### Deploying microservices in Kubernetes
+
+In previous section, we saw how to deploy microservices within docker using containers and linking them together. Let's see how to do this on a Kubernetes cluster.
+
+On a kubernetes cluster, we can't deploy a docker container directly. The smallest unit for deployment on a Kubernetes cluster is a pod. So for simplicity sake, we will create a pod-definition file and then use that info to create a deployment-definition and then create Services to make the application accessible. Let's see this in the figure below:
+
+{{< figure src="/services.png" alt="Microservices" caption="Kubernetes Microservices" >}}
+
+So let's take a moment to create a high level strategy on how to start with Kubernetes deployment.
+
+Steps:
+1. Deploy Pods for the 5 microservices
+1. Note that since only `voting-app`, `result-app`, `redis` and `postgres` pods have arrows coming in, meaning only these pods are accessed either from outside or from other pods, we will only need to configure services for these 4 pods. Since `worker` does not have any arrows coming in, it does not get accessed by anyone, so no need to create a service for this.
+1. Since the services `redis` and `postgres` are not to be accessed outside the cluster, they will just be of type `ClusterIP`
+1. Now that we have decided that `redis` and `postgres` pods will have services of type `ClusterIP` to make them accessible by other parts of application, we need to decide what name to use for those services. Service name is important because that is how you will access the service.
+    - As we see in figure captioned `redis`, since we access redis microservice from code using hostname as `redis` in code (in the connection string), we will name the redis service as `redis`
+    - As we see in the figure captioned `postgres`, since we access postgres microservice from code using hostname as `db` in code (in the connection string), we will name the postgres service as `db`
+    - Also note that in the figure captioned `postgres`, we see that in the connection string for the database, we also supoly a Username and Password. We must ensure that these credentials must be set accordingly when we setup the database inside the pod.
+1. Next task is to enable external access. As we know, service of type `NodePort` does this. 
+    - Create a service for `voting-app` and set its type to `NodePort`
+    - Create a service for `result-app` and set its type to `NodePort`
+    - We can decide on what port to make them available on, it would be a high port, with the port number greater than 30000.
+
+{{< figure src="/redis.png" alt="Redis" caption="redis" >}}
+{{< figure src="/postgres.png" alt="postgres" caption="postgres" >}}
+
+__Note__: A service is only needed when the application has some kind of process or database or webservice that needs to be exposed, that needs to be accessible by others. So, for example, in the above example, since `worker` app didn't need this accebility by others, it did not need a service.
+
+Lets get to the code.
+We mentioned that step 1 is to write pod definition files for all 5 applications we have. In reality, we don't use pod-definition files or replicaset-definition files. The reason being that doing this way causes us to first take down the instances first before rolling new ones, when we are updating the applications to a new version. Also there are no rolling updates, rollbacks etc as deployments offer you. So, in practise, we write deployment-definition files instead of pod-definition files or replicaset definition files. 
+
+`postgres-deploy.yaml`
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deploy
+  labels:
+    name: postgres-deploy
+    app: demo-voting-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: postgres-pod
+      app: demo-voting-app
+  template:
+    metadata:
+      name: postgres-pod
+      labels:
+        name: postgres-pod
+        app: demo-voting-app
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+          - name: POSTGRES_USER
+            value: "postgres"
+          - name: POSTGRES_PASSWORD
+            value: "postgres"
+          - name: POSTGRES_HOST_AUTH_METHOD
+            value: trust
+```
+
+`postgres-service.yaml`
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    name: postgres-service
+    app: demo-voting-app
+spec:
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    name: postgres-pod
+    app: demo-voting-app
+```
+
+`redis-deploy.yaml`
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deploy
+  labels:
+    name: redis-deploy
+    app: demo-voting-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: redis-pod
+      app: demo-voting-app
+  template:
+    metadata:
+      name: redis-pod
+      labels:
+        name: redis-pod
+        app: demo-voting-app
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        ports:
+        - containerPort: 6379
+```
+
+`redis-service.yaml`
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    name: redis-service
+    app: demo-voting-app
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    name: redis-pod
+    app: demo-voting-app
+```
+
+`result-app-deploy.yaml`
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: result-app-deploy
+  labels:
+    name: result-app-deploy
+    app: demo-voting-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: result-app-pod
+      app: demo-voting-app
+  template:
+    metadata:
+      name: result-app-pod
+      labels:
+        name: result-app-pod
+        app: demo-voting-app
+    spec:
+      containers:
+      - name: result-app
+        image: docker/example-voting-app-result
+        ports:
+        - containerPort: 80
+```
+
+`result-app-service.yaml`
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: result-service
+  labels:
+    name: result-service
+    app: demo-voting-app
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30005
+  selector:
+    name: result-app-pod
+    app: demo-voting-app
+```
+
+`voting-app-deploy.yaml`
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voting-app-deploy
+  labels:
+    name: voting-app-deploy
+    app: demo-voting-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: voting-app-pod
+      app: demo-voting-app
+  template:
+    metadata:
+      name: voting-app-pod
+      labels:
+        name: voting-app-pod
+        app: demo-voting-app
+    spec:
+      containers:
+      - name: voting-app
+        image: docker/example-voting-app-vote
+        ports:
+        - containerPort: 80
+```
+
+`voting-app-service.yaml`
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting-service
+  labels:
+    name: voting-service
+    app: demo-voting-app
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30004
+  selector:
+    name: voting-app-pod
+    app: demo-voting-app
+```
+
+`worker-app-deploy.yaml`
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-app-deploy
+  labels:
+    name: worker-app-deploy
+    app: demo-voting-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: worker-app-pod
+      app: demo-voting-app
+  template:
+    metadata:
+      name: worker-app-pod
+      labels:
+        name: worker-app-pod
+        app: demo-voting-app
+    spec:
+      containers:
+      - name: worker-app
+        image: docker/example-voting-app-worker
+```
+now we will create all the deployments and services:
+```shell
+# voting app
+kubectl create -f voting-app-deploy.yaml
+kubectl create -f voting-app-service.yaml
+# do a quick check to make sure that above deplyment is in running state
+kubectl get deployments
+# postgres
+kubectl create -f postgres-deploy.yaml
+kubectl create -f postgres-service.yaml
+# redis
+kubectl create -f redis-deploy.yaml
+kubectl create -f redis-service.yaml
+# do a quick check to make sure that above deplyment is in running state
+kubectl get deployments
+# make sure that all pods are up as well as the service
+kubectl get pods,svc
+# worker
+kubectl create -f worker-app-deploy.yaml
+# make sure that all pods are up as well as the service
+kubectl get pods,svc
+# result app
+kubectl create -f result-app-deploy.yaml
+kubectl create -f result-app-service.yaml
+# make sure that all deployments are up as well as the service
+kubectl get deployments,svc
+# get urls for the two frontend services
+minikube service voting-service --url
+minikube service result-service --url
+```
