@@ -122,3 +122,5 @@ Here, for `f.Name` = `public-http-port`, `v.IsSet(configName)` will be true (con
 
 lastly, note this line from `init()`:
 `serverCmd.PersistentFlags().StringVar(&Cfg.PublicHTTPPort, "public-http-port", "8081", "public HTTP port")`: here we are storing the value passed to command line arguement `public-http-port` into its corresponding field in `Cfg`. In other words, `Cfg` is a struct where we store all values passed via command line arguements to access them later. The `Cfg` struct is a mechanism through which we can access values passed to cobra commands via command line arguements.
+
+Note: If you are providing values from a config file + env vars, follow this excellent post(https://dev.to/techschoolguru/load-config-from-file-environment-variables-in-golang-with-viper-2j2d). The concepts discussed are the same. In this scenario, you can still have a cobra cli app, just that it will not have any flags. Instead, your `initializeConfig` will have similar code as `LoadConfig` in the link.
