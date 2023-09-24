@@ -8,6 +8,19 @@ tags: ["tools"]
 
 Cobra is a tool for making CLI application. Viper is a configuration management solution for Go applications which allows you to specify configuration options for your application in several ways, including **configuration files, environment variables, and command-line flags**.
 
+## Why viper for config management?
+
+- It can find, load, and unmarshal values from a config file.
+- It supports many types of files, such as JSON, TOML, YAML, ENV, or INI.
+- It can also read values from environment variables or command-line flags.
+- It gives us the ability to set or override default values.
+- Moreover, if you prefer to store your settings in a remote system such as Etcd or Consul, then you can use viper to read data from them directly.
+- It works for both unencrypted and encrypted values.
+- One more interesting thing about Viper is, it can watch for changes in the config file, and notify the application about it.
+- We can also use viper to save any config modification we made to the file.
+
+## Let's do it
+
 Install cobra: `go install github.com/spf13/cobra`
 Assuming that this is a blank project with just `go.mod` file, create the boilerplate by:
 ```shell
@@ -102,6 +115,12 @@ func initializeConfig(cmd *cobra.Command) error {
 The important part is the function called in the pre-run hook:`initializeConfig`:
 Some things to note. Viper allows us to manage configurations supplied via command-line args, environment variables and config files. A common paradigm is that of the 3, only two are supported.. like config-file + env-vars OR command-line-args + env-vars. It's so because its not a good pattern to spread configuration in too many places. Here, we are supporting command-line-args + env-vars.
 
+Reading values from file/command-line-args allows us to easily specify default configuration for local development and testing.
+
+While reading values from environment variables will help us override the default settings when deploying our application to staging or production using docker containers.
+
+## command-line-args + env-vars approach
+
 `v := viper.New()` creates a new viper object.
 
 `v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))` : this line is more tricky to understand. So, here's the explanation:
@@ -123,4 +142,84 @@ Here, for `f.Name` = `public-http-port`, `v.IsSet(configName)` will be true (con
 lastly, note this line from `init()`:
 `serverCmd.PersistentFlags().StringVar(&Cfg.PublicHTTPPort, "public-http-port", "8081", "public HTTP port")`: here we are storing the value passed to command line arguement `public-http-port` into its corresponding field in `Cfg`. In other words, `Cfg` is a struct where we store all values passed via command line arguements to access them later. The `Cfg` struct is a mechanism through which we can access values passed to cobra commands via command line arguements.
 
-Note: If you are providing values from a config file + env vars, follow this excellent post(https://dev.to/techschoolguru/load-config-from-file-environment-variables-in-golang-with-viper-2j2d). The concepts discussed are the same. In this scenario, you can still have a cobra cli app, just that it will not have any flags. Instead, your `initializeConfig` will have similar code as `LoadConfig` in the link.
+## config-file + env-vars approach
+
+first create a struct to store the config file path that will be supplied via command line args. So, in `config/Config.go`:
+```go
+package config
+
+type Config struct {
+	PublicHTTPPort string `mapstructure:"PUBLIC_HTTP_PORT"`
+}
+
+type CfgFile struct {
+    Path string
+    Name string
+    Type string
+}
+``` 
+Notice that `Config` struct has `mapstructure` tag added. This is because in order to get the value of the variables from config file and store them in this struct, we need to use the unmarshaling feature of Viper. Viper uses the `mapstructure` package under the hood for unmarshaling values, so we use the mapstructure tags to specify the name of each config field. Also, we must use the exact name of each variable as being declared in the supplied config file. So, if in the file its `PUBLIC_HTTP_PORT`, then use exact same value as tag name for `PublicHTTPPort`
+
+declare `var CfgF config.CfgFile` globally, at top of `cmd/server.go` file
+
+Rest is nearly the same as we saw above. The only difference being in `init()` and `initializeConfig()` 
+
+`init()`:
+```go
+func init() {
+	rootCmd.AddCommand(serverCmd)
+	serverCmd.PersistentFlags().StringVar(&CfgF.Path, "config-file-path", ".", "confuguration file path")
+	serverCmd.PersistentFlags().StringVar(&CfgF.Name, "config-file-name", "cfg", "confuguration file name")
+	serverCmd.PersistentFlags().StringVar(&CfgF.Type, "config-file-type", "env", "confuguration file type")
+}
+```
+
+and here is our `initializeConfig`:
+```go
+func initializeConfig(cmd *cobra.Command) error {
+	v := viper.New()
+	v.AddConfigPath(CfgFile.Path)
+	v.SetConfigName(CfgFile.Name)
+	v.SetConfigType(CfgFile.Type)
+
+	v.AutomaticEnv()
+
+	if err := v.ReadInConfig(); err != nil {
+		return err
+	}
+
+	if err := v.Unmarshal(&Cfg); err != nil {
+		return err
+	}
+    /* only for demo */
+	fmt.Printf("the port:%s\n", v.Get("PUBLIC_HTTP_PORT"))
+    /* only for demo */
+	fmt.Printf("the port in Cfg:%#v\n", Cfg)
+	return nil
+}
+```
+
+First, we call v.AddConfigPath() to tell Viper the location of the config file. In this case, the location is given by the input path argument.
+
+Next, we call v.SetConfigName() to tell Viper to look for a config file with a specific name. Our config file is app.env, so its name is app.
+
+We also tell Viper the type of the config file, which is env in this case, by calling v.SetConfigFile() and pass in env. You can also use JSON, XML or any other format here if you want, just make sure your config file has the correct format and extension.
+
+Now, besides reading configurations from file, we also want viper to read values from environment variables. So we call v.AutomaticEnv() to tell viper to automatically override values that it has read from config file with the values of the corresponding environment variables if they exist.
+
+After that, we call v.ReadInConfig() to start reading config values. If error is not nil, then we simply return it.
+
+Otherwise, we call v.Unmarshal() to unmarshal the values into the target config object. And finally just return the config object and any error if it occurs.
+
+## Using the configuration values
+
+Now, that we have configuration values loaded into our target configuration object, `Cfg`, it will be available to use in the function passed to `Run`
+```go
+Run: func(cmd *cobra.Command, args []string) {
+    fmt.Println("server called")
+},
+```
+
+You can write your code in this method that needs these config values.
+
+Note that you can access the values read into viper from environment directly via `v.Get`, doing so is not considered a good practise. Rather inject them from this method (one with `Run`). This is good for testability.
