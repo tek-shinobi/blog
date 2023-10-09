@@ -83,3 +83,17 @@ create migration schema file:
 ```shell
 ./migrate create -ext sql -dir internal/repository/migrations/postgres -seq create_users_table
 ```
+
+for running migration:
+```shell
+./migrate -path internal/repository/migrations/postgres -database "postgresql://root:secret@localhost:5432/modelapp?sslmode=disable" up
+```
+
+in case there was a problem in doing migration, it will be marked as dirty for current migration number. After the bug was fixed that caused migration failure, we will have to first reset the migration dirty to false. A shortcult way of solving this is to force migration to some lower one:
+```shell
+./migrate -path internal/repository/migrations/postgres -database "postgresql://root:secret@localhost:5432/modelapp?sslmode=disable" -verbose force 1
+``` 
+above the current dirty migration was set at 3. So first forced migrated it to some lower value like 1. This will be successful. Then do up
+```shell
+./migrate -path internal/repository/migrations/postgres -database "postgresql://root:secret@localhost:5432/modelapp?sslmode=disable" up
+```
