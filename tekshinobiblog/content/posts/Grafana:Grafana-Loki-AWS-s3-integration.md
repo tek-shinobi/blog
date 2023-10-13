@@ -140,6 +140,11 @@ table_manager:
 ruler:
   alertmanager_url: http://localhost:9093
 
+# bug in grafana 2.4.2+ versions causing frontend to show "too many outstanding requests" for periods larger than 16 hours. Workaround for that
+# https://github.com/grafana/loki/issues/5123
+query_scheduler:
+  max_outstanding_requests_per_tenant: 10000
+
 # By default, Loki will send anonymous, but uniquely-identifiable usage and configuration
 # analytics to Grafana Labs. These statistics are sent to https://stats.grafana.org/
 #
@@ -306,6 +311,11 @@ table_manager:
 ruler:
   alertmanager_url: http://localhost:9093
 
+# bug in grafana 2.4.2+ versions causing frontend to show "too many outstanding requests" for periods larger than 16 hours. Workaround for that
+# https://github.com/grafana/loki/issues/5123
+query_scheduler:
+  max_outstanding_requests_per_tenant: 10000
+
 # By default, Loki will send anonymous, but uniquely-identifiable usage and configuration
 # analytics to Grafana Labs. These statistics are sent to https://stats.grafana.org/
 #
@@ -436,6 +446,11 @@ table_manager:
 
 ruler:
   alertmanager_url: http://localhost:9093
+
+# bug in grafana 2.4.2+ versions causing frontend to show "too many outstanding requests" for periods larger than 16 hours. Workaround for that
+# https://github.com/grafana/loki/issues/5123
+query_scheduler:
+  max_outstanding_requests_per_tenant: 10000
 
 # By default, Loki will send anonymous, but uniquely-identifiable usage and configuration
 # analytics to Grafana Labs. These statistics are sent to https://stats.grafana.org/
