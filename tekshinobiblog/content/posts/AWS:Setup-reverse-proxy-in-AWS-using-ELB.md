@@ -137,6 +137,9 @@ Protocol version: HTTP1
 
 thats it. save.
 
+__IMPORTANT__: Register targets
+this step is v important once you have created a target group, stay on the created page and click on "Register targets". Choose the EC2 instance you want this group to target.. in our case the instance that is running our grafana application. Then, __very important__: "Ports for the selected instances" : 3000 . Then click on "include as pending below". Then save.
+
 You dont need to create another target group for port 443. TLS certificate handling is done in the Load balancer itself. Let's see how to do this. Trick is to add listener on port 443. Click Add listener-> Protocol HTTPS (it will auto select 443 port for you)
 
 Routing actions -> Forward to target groups
