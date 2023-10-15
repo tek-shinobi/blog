@@ -139,6 +139,15 @@ table_manager:
 
 ruler:
   alertmanager_url: http://localhost:9093
+  rule_path: /loki/rules
+  enable_api: true
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
 
 # bug in grafana 2.4.2+ versions causing frontend to show "too many outstanding requests" for periods larger than 16 hours. Workaround for that
 # https://github.com/grafana/loki/issues/5123
@@ -158,6 +167,8 @@ query_scheduler:
 analytics:
  reporting_enabled: false
 ```
+Note the `ruler` section. It's needed if you wish to set alert rules to get grafana managed alerts.
+
 some grafana undocumented weirdness here. Note these lines:
 ```shell
   aws:
@@ -310,6 +321,15 @@ table_manager:
 
 ruler:
   alertmanager_url: http://localhost:9093
+  rule_path: /loki/rules
+  enable_api: true
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
 
 # bug in grafana 2.4.2+ versions causing frontend to show "too many outstanding requests" for periods larger than 16 hours. Workaround for that
 # https://github.com/grafana/loki/issues/5123
@@ -401,8 +421,8 @@ common:
   path_prefix: loki
   storage:
     filesystem:
-      chunks_directory: /tmp/loki/chunks
-      rules_directory: /tmp/loki/rules
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
   replication_factor: 1
   ring:
     kvstore:
@@ -446,6 +466,15 @@ table_manager:
 
 ruler:
   alertmanager_url: http://localhost:9093
+  rule_path: /loki/rules
+  enable_api: true
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
 
 # bug in grafana 2.4.2+ versions causing frontend to show "too many outstanding requests" for periods larger than 16 hours. Workaround for that
 # https://github.com/grafana/loki/issues/5123
