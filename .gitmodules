@@ -1,10 +1,6 @@
 [submodule "tekshinobiblog/themes/hugo-bearcub"]
 	path = tekshinobiblog/themes/hugo-bearcub
 	url = https://github.com/clente/hugo-bearcub
-[submodule "tekshinobiblog/public"]
-	path = tekshinobiblog/public
-	url = https://github.com/tek-shinobi/tek-shinobi.github.io.git
-	branch = main
 [submodule "tekshinobiblog/themes/anubis"]
 	path = tekshinobiblog/themes/anubis
 	url = https://github.com/mitrichius/hugo-theme-anubis.git
@@ -23,3 +19,11 @@
 [submodule "tekshinobiblog/themes/paper"]
 	path = tekshinobiblog/themes/paper
 	url = https://github.com/nanxiaobei/hugo-paper
+[submodule "tekshinobiblog/public1"]
+	path = tekshinobiblog/public1
+	url = git@github.com:tek-shinobi/blog.git
+	branch = main
+[submodule "tekshinobiblog/public"]
+	path = tekshinobiblog/public
+	url = git@github.com:tek-shinobi/blog.git
+	branch = main
