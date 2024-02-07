@@ -99,7 +99,7 @@ Let's use this library for load testing: `https://github.com/tsenart/vegeta`
 Create a configuration file with all the endpoints that need to be load tested. Let's call this file `load_test.conf`:
 Paste the following in that file: 
 ```shell
-GET http://localhost:3000
+GET http://localhost:3333
 Content-Type: application/json
 ```
 
@@ -107,13 +107,13 @@ Content-Type: application/json
 
 To make it easy, lets put everything in a makefile:
 ```Makefile
-.PHONY: load-test
+.PHONY: run-load-test
 load-test:
 	@echo "Running load test"
 	go get github.com/tsenart/vegeta
 	go run github.com/tsenart/vegeta attack -duration=10s -rate=10/s -targets=load_test.conf | tee results.bin | vegeta report
 
-.PHONY: analysis
+.PHONY: run-analysis
 analysis:
 	@echo "Analyzing load test results"
 	go build -o main main.go
@@ -122,9 +122,9 @@ analysis:
 
 **Step 4: Run**
 1. Run the application: `go run main.go`
-1. Run the load test and wait till it finishes: `make load-test`
+1. Run the load test and wait till it finishes: `make run-load-test`
 1. **important!** close the application via ctrl+C. This will flush the profile info into file used in next step.
-1. `make analysis`
+1. `make run-analysis`
 1. type `web` in the pprof prompt 
 
 ---
@@ -133,7 +133,7 @@ analysis:
 ```json
 {
   "name": "Meaow",
-  "some field": "I am a cat"
+  "some_field": "I am a cat"
 }
 ``` 
 
