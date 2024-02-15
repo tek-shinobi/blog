@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/public" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/themes/anubis" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/themes/binario" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/themes/holy" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/themes/hugo-bearcub" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/themes/mainroad" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/themes/paper" vcs="Git" />
+  </component>
+</project>
