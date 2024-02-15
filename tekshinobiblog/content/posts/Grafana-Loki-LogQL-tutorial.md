@@ -5,11 +5,6 @@ draft: false
 categories: ["grafana"]
 tags: ["loki", "LogQL"]
 ---
-**Credit**: material taken from this excellent video here: https://www.youtube.com/watch?v=HDpE9v1Syz8
-
-**Credit**: Corresponding blog entry here: https://sbcode.net/grafana/logql/
-
----
 
 ## Description
 
@@ -34,27 +29,27 @@ We can use operations on both the log stream selectors and filter expressions to
 
 #### EXAMPLES
 Return all log lines for the job **varlog**
-```json
+```javascript
 {job="varlogs"}
 ```
 Return all log lines for the filename `/var/log/syslog`
-```json
+```javascript
 {filename="/var/log/syslog"}
 ```
 Return all log lines for the job `varlogs` and the filename `/var/log/auth.log`
-```json
+```javascript
 {filename="/var/log/auth.log",job="varlogs"}
 ```
 Show all log lines for 2 jobs with different names
-```json
+```javascript
 {filename=~"/var/log/auth.log|/var/log/syslog"}
 ```
 Show everything you have using regex
-```json
+```javascript
 {filename=~".+"}
 ```
 Show data from all filenames, except for syslog
-```json
+```javascript
 {filename=~".+",filename!="/var/log/syslog"}
 ```
 ### Filter Expressions
@@ -68,31 +63,31 @@ Used for testing text within log line streams.
 - !~ : regex does not match
 #### EXAMPLES
 Return lines including the text "error"
-```json
+```javascript
 {job="varlogs"} |= "error"
 ```
 Return lines not including the text "error"
-```json
+```javascript
 {job="varlogs"} != "error"
 ```
 Return lines including the text "error" or "info" using regex
-```json
+```javascript
 {job="varlogs"} |~ "error|info"
 ```
 Return lines not including the text "error" or "info" using regex
-```json
+```javascript
 {job="varlogs"} !~ "error|info"
 ```
 Return lines including the text "error" but not including "info"
-```json
+```javascript
 {job="varlogs"} |= "error" != "info"
 ```
 Return lines including the text "Invalid user" and including ("bob" or "redis") using regex
-```json
+```javascript
 {job="varlogs"} |~ "Invalid user (bob|redis)"
 ```
 Return lines including the text "status 403" or "status 503" using regex
-```json
+```javascript
 {job="varlogs"} |~ "status [45]03"
 ```
 
@@ -108,11 +103,11 @@ We can aggregate the lines into numeric values, such as counts, which then becom
 
 #### EXAMPLES
 The count of jobs at 1 minutes time intervals
-```json
+```javascript
 count_over_time({job="varlogs"}[1m])
 ```
 The rate of logs per minute. Rate is similar to ***count_over_time*** but shows the entries per second.
-```json
+```javascript
 rate({job="varlogs"}[1m])
 ```
 >rate = count_over_time / 60 / range(m)
@@ -121,7 +116,7 @@ rate({job="varlogs"}[1m])
 >```12 / 60 / 2 = 0.1```
 
 The count of errors at 1h time intervals
-```json
+```javascript
 count_over_time({job="varlogs"} |= "error" [1h])
 ```
 
@@ -141,19 +136,19 @@ An aggregate function converts multiple series of vectors into a single vector.
 
 #### EXAMPLES
 Calculate the total of all vectors in the range at time
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m]))
 ```
 Show the minimum value from all vectors in the range at time
-```json
+```javascript
 min(count_over_time({job="varlogs"}[1m]))
 ```
 Show the maximum value from all vectors in the range at time
-```json
+```javascript
 max(count_over_time({job="varlogs"}[1m]))
 ```
 Show only the top 2 values from all vectors in the range at time
-```json
+```javascript
 topk(2, count_over_time({job="varlogs"}[1h]))
 ```
 
@@ -162,15 +157,15 @@ Convert a scalar vector into a series of vectors grouped by filename
 
 #### EXAMPLES
 Group a single log stream by filename
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m])) by (filename)
 ```
 Group multiple log streams by host
-```json
+```javascript
 sum(count_over_time({job=~"varlogs"}[1m])) by (host)
 ```
 Group multiple log streams by filename and host
-```json
+```javascript
 sum(count_over_time({job=~"varlogs"}[1m])) by (filename,host)
 ```
 
@@ -185,11 +180,11 @@ Used for testing numeric values present in scalars and vectors.
 - <= (less than or equal to)
 #### EXAMPLES
 Returns values greater than 4
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m])) > 4
 ```
 Returns values less than or equal to 1
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m])) <= 1
 ```
 
@@ -201,11 +196,11 @@ These can be applied to both vectors and series of vectors
 - unless : Return values unless value
 #### EXAMPLES
 Returns values greater than 4 or values less then or equal to 1
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m])) > 4 or sum(count_over_time({job="varlogs"}[1m])) <= 1
 ```
 Return values between 100 and 200
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m])) > 100 and sum(count_over_time({job="varlogs"}[1m])) < 200
 ```
 
@@ -217,7 +212,7 @@ sum(count_over_time({job="varlogs"}[1m])) > 100 and sum(count_over_time({job="va
 -  % : Modulus
 -  ^ : Power/Exponentiation
 ####  EXAMPLES
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m])) * 10 and sum(count_over_time({job="varlogs"}[1m])) % 2
 ```
 
@@ -226,13 +221,13 @@ Many Operators can be used at a time. The order follows the **PEMDAS** construct
 
 #### EXAMPLES
 A nonsensical example
-```json
+```javascript
 sum(count_over_time({job="varlogs"}[1m])) % 4 * 2 ^ 2 + 2
 # is the same as
 ((sum(count_over_time({job="varlogs"}[1m])) % 4 * (2 ^ 2)) + 2)
 ```
 Proving that count_over_time / 60 / range(m) = rate
-```json
+```javascript
 rate({job="varlogs"}[2m]) == count_over_time({job="varlogs"}[2m]) / 60 / 2
 # is the same as
 rate({job="varlogs"}[2m]) == ((count_over_time({job="varlogs"}[2m]) / 60) / 2)
@@ -242,4 +237,9 @@ rate({job="varlogs"}[2m]) == ((count_over_time({job="varlogs"}[2m]) / 60) / 2)
 Grafana LogQL https://grafana.com/docs/loki/latest/logql/
 
 Google Regular Expression (RE2) Syntax https://github.com/google/re2/wiki/Syntax
+
+---
+**Credit**: material taken from this excellent video here: https://www.youtube.com/watch?v=HDpE9v1Syz8
+
+**Credit**: Corresponding blog entry here: https://sbcode.net/grafana/logql/
 
