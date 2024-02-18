@@ -39,6 +39,8 @@ func main() {
 	projectID := "your-project-id"
 	ctx, cancelTO := context.WithTimeout(context.Background(), timeout)
 	defer cancelTO()
+    
+    // step1: create client
 	client, err := NewGCPubSub(ctx, projectID)
 	if err != nil {
 		fmt.Println("Error creating workflow client:", err)
@@ -46,6 +48,7 @@ func main() {
 	}
 	defer client.Close()
 
+    // step2: create topic
 	topicID := fmt.Sprintf("topic-%s", uuid.New().String())
 	topic, err := client.CreateTopic(ctx, topicID)
 	if err != nil && status.Code(err) != codes.AlreadyExists {
@@ -64,6 +67,7 @@ func main() {
 
 	fmt.Println("Topic created:", topic)
 
+    // step3: create subscription object
 	subID := fmt.Sprintf("sub-%s", uuid.New().String())
 	sub, err := client.CreateSubscription(ctx, subID, topic)
 	if err != nil && status.Code(err) != codes.AlreadyExists {
@@ -72,6 +76,7 @@ func main() {
 	}
 	fmt.Println("Subscription created:", sub)
 	defer func(ctx context.Context, sub *pubsub.Subscription) {
+        // cleanup
 		err = sub.Delete(ctx)
 		if err != nil {
 			fmt.Println("Error deleting subscription:", err)
@@ -79,6 +84,7 @@ func main() {
 		}
 	}(ctx, sub)
 
+    // step4: publish a message
 	msg := uuid.New().String()
 	payload := pubsub.Message{
 		Data: []byte(msg),
@@ -95,8 +101,9 @@ func main() {
 
 	fmt.Println("Message published with ID:", msgID)
 
+    // step5: subscribe to the topic
 	ctx, cancel := context.WithCancel(ctx)
-
+    // it will block until the message is received
 	err = client.Subscribe(ctx, sub, func(ctx context.Context, msg *pubsub.Message) {
 		defer cancel()
 		fmt.Println("Received message:", string(msg.Data))
