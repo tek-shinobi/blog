@@ -1,7 +1,9 @@
 ---
 title: "Golang Google Cloud PubSub Tutorial"
 date: 2023-02-18T20:27:27+02:00
-draft: false 
+draft: false
+categories: ["golang" ]
+tags: ["golang", "pubsub"]
 ---
 
 brief cheatsheet on doing a simple pubsub publish and subscribe in golang in a synchronous fashion.
